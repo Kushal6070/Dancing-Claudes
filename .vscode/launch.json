@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:vibe_orchestrator}",
+            "name": "Debug VibeClauding",
+            "target": "VibeClauding",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug VibeClauding"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:vibe_orchestrator}",
+            "name": "Release VibeClauding",
+            "target": "VibeClauding",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release VibeClauding"
+        }
+    ]
+}

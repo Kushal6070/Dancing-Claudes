@@ -1,60 +1,78 @@
 # Vibe Clauding
 
-A macOS app that turns every running Claude Code agent into a pixel cutie dancing to whatever your Mac is playing.
+**The best way to vibe code with Claude.**
 
-- **One cutie per agent.** Working agents dance up front, agents waiting on you wave with a flashing `!`, and idle agents nap in the back lounge. When an agent's status changes, its cutie hops to its new spot.
-- **Live activity.** A speech bubble shows what each agent is doing right now (`$ npm test`, `Editing App.swift`, `Needs you · $ rm -rf build`). The name tag shows the project and the session's task title. Subagents dance at their parent's feet as little helpers.
-- **Synced to your music.** The app captures Mac audio (or the microphone) and runs an FFT, onset detection and a tempo tracker. Dance moves land on the beat and switch every two bars. Twisting neon wave ribbons on a black stage swell with the bass and pulse on every kick.
-- **Click a cutie** to open its project in your editor (VS Code, Cursor or Windsurf, read from `~/.claude/ide`). Hover for details.
-- **Menu bar extra** shows how many agents are working, or how many need you, with a quick list.
+Put on some music and your Claude Code agents dance to it. Every agent you have running becomes a little pixel cutie, and every move lands on the beat. One look tells you what each agent is doing and which one needs you.
 
-## Build and run
+![Pixel cuties dancing to music under neon waves, one cutie per Claude Code agent](docs/demo.gif)
 
-Requires macOS 15+ and Xcode 16+ (Swift 6 toolchain).
+*7 agents on a 141 BPM song: 2 working up front, 5 napping in the back.*
+
+## What you get
+
+- **Claude, synced to your music.** The app listens to whatever your Mac is playing and finds the beat. The cuties switch moves every two bars: floss, dab, disco point, horse-ride trot, noodle flail and more. Behind them, neon waves pump with the bass and flash on every kick.
+- **One cutie per agent.** Busy agents dance up front. Agents waiting on you wave a flashing `!` at you. Idle ones nap in the back lounge. When an agent changes state, its cutie hops over to its new spot.
+- **Speech bubbles.** Each cutie shows what its agent is doing right now, like `$ npm test`, `Editing App.swift` or `Needs you · $ rm -rf build`. The name tag shows the project and the task. Subagents dance at their parent's feet like tiny helpers.
+- **Choose your Cudie.** Go Regular, or go Mexican for sombreros, maracas and a zapateado stomp. The app remembers your pick.
+- **Click a cutie** to open its project in VS Code, Cursor or Windsurf. Hover over it for more details.
+- **Menu bar icon** shows how many agents are working, or how many need you, plus a quick list.
+- **Pin it on top** so your cuties stay in view while you work.
+
+## Get it running
+
+You need macOS 15+ and Xcode 16+ (Swift 6).
 
 ```sh
-./scripts/build_app.sh          # builds and ad-hoc signs build/Vibe Clauding.app
+./scripts/build_app.sh          # builds and signs build/Vibe Clauding.app
 open "build/Vibe Clauding.app"
 ```
 
-Use the `.app` rather than `swift run`, because macOS only shows the audio permission prompt to a bundled app.
+Open the `.app`. Don't use `swift run`, because macOS only asks for audio permission when it's a real app.
 
-### Permissions
+### Let it hear your music
 
-- **Mac audio** (default source) uses a Core Audio process tap (macOS 14.2+). On first launch macOS asks to allow *System Audio Recording*. If the HUD stays on `SILENT` while music plays, enable Vibe Clauding under **System Settings › Privacy & Security › Screen & System Audio Recording**. The app shows a shortcut button for this.
-- **Mic** listens to the room instead.
-- **Off** stops audio capture. The agents keep dancing to their own beat.
+The first time you open it, macOS asks if Vibe Clauding can record system audio. Say yes.
 
-Audio is analyzed in memory and never recorded or sent anywhere.
+Music is playing but the app says `SILENT`? Turn on Vibe Clauding in **System Settings › Privacy & Security › Screen & System Audio Recording**. The app has a button that takes you right there.
 
-Each rebuild is ad-hoc signed with a new signature, so macOS may ask for permission again after a rebuild.
+Pick where the sound comes from:
 
-## How agents are detected
+- **Mac audio** (default) hears whatever your Mac is playing.
+- **Mic** hears the room around you.
+- **Off** stops listening. The cuties keep dancing to their own beat.
 
-Claude Code writes one file per running process to `~/.claude/sessions/<pid>.json` (fields used: `sessionId`, `cwd`, `status` = `busy` / `idle` / `waiting`). The app polls these every second, skips processes that have exited, and reads the tail of each session's transcript (`~/.claude/projects/<project>/<sessionId>.jsonl`) to find the current tool call, the last prompt and the AI title. Running subagents come from `<sessionId>/subagents/*.meta.json`. `CLAUDE_CONFIG_DIR` is respected.
+The app only listens in memory. Nothing is recorded or sent anywhere.
 
-These are internal Claude Code files rather than a public API, so a future Claude Code release could change them.
+Heads up: every rebuild gets a new signature, so macOS may ask for permission again.
 
-## Layout
+## How it finds your agents
+
+Claude Code keeps a small file for each running session at `~/.claude/sessions/<pid>.json`. It has the session ID, the folder and the status (`busy`, `idle` or `waiting`). The app checks these every second and skips sessions that have quit.
+
+For the speech bubbles, it reads the end of each session's transcript at `~/.claude/projects/<project>/<sessionId>.jsonl`. That gives it the current tool call, your last prompt and the session title. Running subagents come from `<sessionId>/subagents/*.meta.json`. To open the right editor, it checks `~/.claude/ide`. If you set `CLAUDE_CONFIG_DIR`, it looks there instead of `~/.claude`.
+
+One catch: these are Claude Code's internal files, not a public API. A future Claude Code update could change them and break things here.
+
+## What's inside
 
 ```
 Sources/VibeClauding/
-  VibeClaudingApp.swift      app, window, menu bar extra, window visibility
-  Agents/AgentStore.swift    session polling, liveness, subagents, open-in-editor
-  Agents/TranscriptParser.swift  transcript tail → "what is it doing" text
-  Audio/AudioEngine.swift    Core Audio system tap, mic capture, source switching
-  Audio/BeatAnalyzer.swift   FFT bands, spectral-flux onsets, autocorrelation BPM, beat clock
-  Visuals/WaveView.swift     Metal shader: neon ribbon, helix strands, beat rings, mirror floor
-  Visuals/Choreography.swift dance moves (keyframes) + who dances what, when
-  Visuals/CutieRenderer.swift draws the pixel mascot
-  UI/StageView.swift         dance floor + lounge layout, bubbles, name tags
-  UI/HUDView.swift           title, counts, BPM meter, source picker, pin-on-top
-scripts/build_app.sh         build + bundle + sign
-scripts/make_icon.swift      renders the app icon
+  VibeClaudingApp.swift          app, window, menu bar icon
+  Agents/AgentStore.swift        finds sessions and subagents, opens your editor
+  Agents/TranscriptParser.swift  turns the transcript into "what it's doing" text
+  Audio/AudioEngine.swift        Mac audio tap, mic, switching between them
+  Audio/BeatAnalyzer.swift       FFT, onset detection, BPM, beat clock
+  Visuals/WaveView.swift         Metal shader: neon waves, beat rings, mirror floor
+  Visuals/Choreography.swift     the dance moves, and who dances what, when
+  Visuals/CutieRenderer.swift    draws the pixel cutie and its props
+  UI/StageView.swift             dance floor, lounge, bubbles, name tags
+  UI/HUDView.swift               top bar: counts, BPM, sound source, Cudie picker, pin
+scripts/build_app.sh             build, bundle, sign
+scripts/make_icon.swift          draws the app icon
 ```
 
-The dance moves come from the "Logo bounce animation" design canvas (Bounce + clap, Shimmy, Disco point, Twirl hop, Hands-up wave), re-timed so the big hits land on beats.
+The cuties and all their moves come from the "Logo bounce animation" design canvas. Each move is re-timed so the big hits land on the beat.
 
-## Performance
+## Easy on your Mac
 
-All animation stops while the window is minimized, covered or on another Space, and CPU drops to about 0.2%. While visible it renders at 60 fps.
+Minimize the window, cover it or switch to another Space, and all animation stops. CPU drops to about 0.2%. When you can see it, it runs at 60 fps.

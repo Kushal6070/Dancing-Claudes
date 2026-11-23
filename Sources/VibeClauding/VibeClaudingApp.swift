@@ -7,7 +7,7 @@ struct VibeClaudingApp: App {
     @State private var audio = AudioEngine()
 
     var body: some Scene {
-        Window("Vibe Clauding", id: "stage") {
+        Window("Dancing Claudes", id: "stage") {
             ContentView()
                 .environment(store)
                 .environment(audio)
@@ -160,7 +160,7 @@ struct MenuBarContent: View {
             ForEach(AudioSource.allCases) { Text($0.label).tag($0) }
         }
         Divider()
-        Button("Quit Vibe Clauding") { NSApp.terminate(nil) }
+        Button("Quit Dancing Claudes") { NSApp.terminate(nil) }
             .keyboardShortcut("q")
     }
 

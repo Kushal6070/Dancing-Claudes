@@ -1,4 +1,4 @@
-# Vibe Clauding
+# Dancing Claudes
 
 **The best way to vibe code with Claude.**
 
@@ -23,17 +23,17 @@ Put on some music and your Claude Code agents dance to it. Every agent you have 
 You need macOS 15+ and Xcode 16+ (Swift 6).
 
 ```sh
-./scripts/build_app.sh          # builds and signs build/Vibe Clauding.app
-open "build/Vibe Clauding.app"
+./scripts/build_app.sh          # builds and signs build/Dancing Claudes.app
+open "build/Dancing Claudes.app"
 ```
 
 Open the `.app`. Don't use `swift run`, because macOS only asks for audio permission when it's a real app.
 
 ### Let it hear your music
 
-The first time you open it, macOS asks if Vibe Clauding can record system audio. Say yes.
+The first time you open it, macOS asks if Dancing Claudes can record system audio. Say yes.
 
-Music is playing but the app says `SILENT`? Turn on Vibe Clauding in **System Settings › Privacy & Security › Screen & System Audio Recording**. The app has a button that takes you right there.
+Music is playing but the app says `SILENT`? Turn on Dancing Claudes in **System Settings › Privacy & Security › Screen & System Audio Recording**. The app has a button that takes you right there.
 
 Pick where the sound comes from:
 

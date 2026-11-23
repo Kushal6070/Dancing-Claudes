@@ -72,7 +72,7 @@ final class WaveRenderer: NSObject, MTKViewDelegate {
             desc.colorAttachments[0].pixelFormat = view.colorPixelFormat
             pipeline = try device.makeRenderPipelineState(descriptor: desc)
         } catch {
-            NSLog("Vibe Clauding: shader failed to compile: \(error)")
+            NSLog("Dancing Claudes: shader failed to compile: \(error)")
         }
         view.delegate = self
     }

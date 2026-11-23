@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Builds "Vibe Clauding.app" into ./build (ad-hoc signed, ready to double-click).
+# Builds "Dancing Claudes.app" into ./build (ad-hoc signed, ready to double-click).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-APP_NAME="Vibe Clauding"
+APP_NAME="Dancing Claudes"
 BUILD_DIR="build"
 APP="$BUILD_DIR/$APP_NAME.app"
 CONFIG="${CONFIG:-release}"

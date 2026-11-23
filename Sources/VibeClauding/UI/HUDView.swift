@@ -10,7 +10,7 @@ struct HUDView: View {
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("VIBE CLAUDING")
+                Text("DANCING CLAUDES")
                     .font(.system(size: 13, weight: .heavy, design: .monospaced))
                     .tracking(4)
                     .foregroundStyle(
@@ -204,7 +204,7 @@ struct SilenceHint: View {
                     hint(err, button: audio.source == .microphone ? "Open Settings" : nil)
                 } else if audio.source != .off && silentFor > 8 {
                     hint(audio.source == .system
-                         ? "Hearing silence. Play some music, or allow Vibe Clauding under Screen & System Audio Recording."
+                         ? "Hearing silence. Play some music, or allow Dancing Claudes under Screen & System Audio Recording."
                          : "Hearing silence. Turn it up, or allow microphone access.",
                          button: "Open Settings")
                 }

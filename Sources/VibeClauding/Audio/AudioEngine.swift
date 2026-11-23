@@ -174,7 +174,7 @@ final class SystemAudioTap {
     func start() throws {
         let desc = CATapDescription(stereoGlobalTapButExcludeProcesses: [])
         desc.uuid = UUID()
-        desc.name = "Vibe Clauding"
+        desc.name = "Dancing Claudes"
         desc.muteBehavior = .unmuted
         desc.isPrivate = true
 
@@ -184,7 +184,7 @@ final class SystemAudioTap {
 
         let outputUID = try Self.defaultOutputUID()
         let aggregate: [String: Any] = [
-            kAudioAggregateDeviceNameKey: "Vibe Clauding Tap",
+            kAudioAggregateDeviceNameKey: "Dancing Claudes Tap",
             kAudioAggregateDeviceUIDKey: "vibe-clauding-\(UUID().uuidString)",
             kAudioAggregateDeviceMainSubDeviceKey: outputUID,
             kAudioAggregateDeviceIsPrivateKey: true,

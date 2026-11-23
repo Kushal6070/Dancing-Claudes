@@ -5,6 +5,7 @@ struct HUDView: View {
     @Environment(AgentStore.self) private var store
     @Environment(AudioEngine.self) private var audio
     @Binding var floatOnTop: Bool
+    @AppStorage("cutieStyle") private var cutieStyle: CutieStyle = .regular
 
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
@@ -23,11 +24,21 @@ struct HUDView: View {
                 }
             }
 
-            Spacer(minLength: 12)
+            Spacer(minLength: 0)
 
-            BeatMeter(analyzer: audio.analyzer)
+            // The cudie picker sits right after the LIVE / SILENT chip, matched in height.
+            // Its label steps down (one line → stacked → hidden) when the bar gets tight.
+            HStack(spacing: 10) {
+                BeatMeter(analyzer: audio.analyzer)
+                ViewThatFits(in: .horizontal) {
+                    CudiePicker(style: $cutieStyle, label: .line)
+                    CudiePicker(style: $cutieStyle, label: .stacked)
+                    CudiePicker(style: $cutieStyle, label: .hidden)
+                }
+            }
+            .fixedSize(horizontal: false, vertical: true)
 
-            Spacer(minLength: 12)
+            Spacer(minLength: 0)
 
             HStack(spacing: 8) {
                 Picker("Audio", selection: Binding(get: { audio.source }, set: { audio.setSource($0) })) {
@@ -37,7 +48,7 @@ struct HUDView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 250)
+                .frame(width: 220)
 
                 Button {
                     floatOnTop.toggle()
@@ -70,6 +81,65 @@ private struct Counter: View {
                 .foregroundStyle(.white.opacity(0.55))
         }
         .opacity(value == 0 && label != "agents" && label != "agent" ? 0.45 : 1)
+    }
+}
+
+/// "Choose your Cudie": swaps every dancer's costume and routine (Mexican = sombreros,
+/// plus the zapateado stomp and the maracas in the rotation). Remembered between launches.
+struct CudiePicker: View {
+    enum LabelLayout { case line, stacked, hidden }
+
+    @Binding var style: CutieStyle
+    var label: LabelLayout = .line
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if label != .hidden {
+                Text(label == .line ? "CHOOSE YOUR CUDIE" : "CHOOSE YOUR\nCUDIE")
+                    .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                    .tracking(2)
+                    .lineSpacing(2)
+                    .foregroundStyle(.white.opacity(0.6))
+                    .fixedSize()
+                    .padding(.leading, 6)
+            }
+            HStack(spacing: 4) {
+                ForEach(CutieStyle.allCases) { option in
+                    let on = option == style
+                    Button {
+                        withAnimation(.snappy(duration: 0.25)) { style = option }
+                    } label: {
+                        HStack(spacing: 7) {
+                            Canvas { ctx, size in
+                                CutieRenderer.drawThumbnail(ctx, size: size, sombrero: option == .mexican)
+                            }
+                            .frame(width: 26, height: 22)
+                            Text(option.label)
+                                .font(.system(size: 11.5, weight: .semibold, design: .monospaced))
+                        }
+                        .padding(.leading, 8)
+                        .padding(.trailing, 12)
+                        .padding(.vertical, 5)
+                        .foregroundStyle(on ? Color.white : .white.opacity(0.6))
+                        .background(
+                            Capsule()
+                                .fill(on ? Palette.clay.opacity(0.22) : Color.white.opacity(0.0001))
+                                .overlay(Capsule().strokeBorder(on ? Palette.clay : .clear, lineWidth: 1.5))
+                        )
+                        .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("\(option.label) cudie")
+                    .accessibilityAddTraits(on ? .isSelected : [])
+                }
+            }
+        }
+        .padding(.leading, label == .hidden ? 4 : 10)
+        .padding(.trailing, 4)
+        .padding(.vertical, 4)
+        .frame(maxHeight: .infinity)          // match the beat meter's height
+        .help("Choose your Cudie")
+        .background(Capsule().fill(Color.white.opacity(0.04)).overlay(Capsule().strokeBorder(.white.opacity(0.08))))
     }
 }
 

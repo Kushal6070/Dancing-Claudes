@@ -41,6 +41,7 @@ struct Groove {
 struct StageView: View {
     @Environment(AgentStore.self) private var store
     @Environment(WindowVisibility.self) private var visibility
+    @AppStorage("cutieStyle") private var cutieStyle: CutieStyle = .regular
     let analyzer: BeatAnalyzer
     @State private var hovered: String?
     @State private var smoothEnergy = SmoothValue()
@@ -54,7 +55,7 @@ struct StageView: View {
             ZStack(alignment: .topLeading) {
                 if agents.isEmpty {
                     TimelineView(.animation(minimumInterval: 1 / 30, paused: !visibility.isVisible)) { _ in
-                        EmptyStage(size: size, groove: currentGroove())
+                        EmptyStage(size: size, groove: currentGroove(), style: cutieStyle)
                     }
                 } else {
                     // Speech bubbles sit behind the dancers so big jumps pass in front.
@@ -64,7 +65,7 @@ struct StageView: View {
                                          emphasized: agent.status == .needsYou)
                                 .frame(maxWidth: min(slot.spacing * 0.92, 280))
                                 .fixedSize(horizontal: false, vertical: true)
-                                .position(x: slot.x, y: slot.feetY - (240 + 130) * slot.mascotWidth / 384 - 14)
+                                .position(x: slot.x, y: slot.feetY - (240 + headroom) * slot.mascotWidth / 384 - 14)
                                 .allowsHitTesting(false)
                         }
                     }
@@ -73,12 +74,13 @@ struct StageView: View {
                         let groove = currentGroove()
                         let slots = animator.step(targets, now: groove.time)
                         let hoveredID = hovered
+                        let style = cutieStyle
                         Canvas { ctx, _ in
                             let ordered = agents.compactMap { a in slots[a.id].map { (a, $0) } }
                                 .sorted { ($0.1.row, $0.1.x) < ($1.1.row, $1.1.x) }
                             for (agent, slot) in ordered {
                                 DancerPainter.paint(ctx, agent: agent, slot: slot, groove: groove,
-                                                    hovered: hoveredID == agent.id)
+                                                    hovered: hoveredID == agent.id, style: style)
                             }
                         }
                         .allowsHitTesting(false)
@@ -86,7 +88,7 @@ struct StageView: View {
 
                     ForEach(agents) { agent in
                         if let slot = targets[agent.id] {
-                            AgentHotspot(agent: agent, slot: slot, hovered: hovered == agent.id,
+                            AgentHotspot(agent: agent, slot: slot, hovered: hovered == agent.id, headroom: headroom,
                                          onHover: { inside in hovered = inside ? agent.id : (hovered == agent.id ? nil : hovered) },
                                          onTap: { store.open(agent) })
                         }
@@ -97,6 +99,9 @@ struct StageView: View {
             .animation(.smooth(duration: 0.9), value: targets.mapValues { SlotKey($0) })
         }
     }
+
+    /// Room above the body (local units) that speech bubbles clear; sombreros need more.
+    private var headroom: Double { cutieStyle == .mexican ? 190 : 130 }
 
     private func bubbleText(_ agent: Agent) -> String {
         switch agent.status {
@@ -224,22 +229,23 @@ struct SlotKey: Equatable {
 }
 
 enum DancerPainter {
-    static func paint(_ ctx: GraphicsContext, agent: Agent, slot: StageSlot, groove: Groove, hovered: Bool) {
+    static func paint(_ ctx: GraphicsContext, agent: Agent, slot: StageSlot, groove: Groove, hovered: Bool, style: CutieStyle) {
+        let sombrero = style == .mexican
         // Helpers (subagents) dance at the feet, behind their parent.
         for (i, sub) in agent.subagents.prefix(4).enumerated() {
             let mini = slot.mascotWidth * 0.34
             let side: CGFloat = i % 2 == 0 ? 1 : -1
             let dx = side * (slot.mascotWidth * 0.66 + CGFloat(i / 2) * mini * 0.95)
             let seed = agent.seed + 31 * (i + 1) + sub.id.count
-            let pose = Choreographer.pose(status: .working, seed: seed, beat: groove.beat + 0.5, energy: groove.energy)
+            let pose = Choreographer.pose(status: .working, seed: seed, beat: groove.beat + 0.5, energy: groove.energy, style: style)
             let look = CutieRenderer.Look(status: .working, kick: groove.kick * 0.6, beat: groove.beat,
-                                          time: groove.time, seed: seed, dim: 0.95)
+                                          time: groove.time, seed: seed, dim: 0.95, sombrero: sombrero)
             drawCutie(ctx, x: slot.x + dx, feetY: slot.feetY + slot.hop, width: mini, scale: 1, pose: pose, look: look)
         }
 
-        let pose = Choreographer.pose(status: agent.status, seed: agent.seed, beat: groove.beat, energy: groove.energy)
+        let pose = Choreographer.pose(status: agent.status, seed: agent.seed, beat: groove.beat, energy: groove.energy, style: style)
         let look = CutieRenderer.Look(status: agent.status, kick: groove.kick, beat: groove.beat,
-                                      time: groove.time, seed: agent.seed, dim: slot.lounge ? 0.78 : 1)
+                                      time: groove.time, seed: agent.seed, dim: slot.lounge ? 0.78 : 1, sombrero: sombrero)
         drawCutie(ctx, x: slot.x, feetY: slot.feetY + slot.hop, width: slot.mascotWidth,
                   scale: hovered ? 1.07 : 1, pose: pose, look: look)
     }
@@ -261,6 +267,7 @@ struct AgentHotspot: View {
     let agent: Agent
     let slot: StageSlot
     let hovered: Bool
+    let headroom: Double
     let onHover: (Bool) -> Void
     let onTap: () -> Void
 
@@ -284,7 +291,7 @@ struct AgentHotspot: View {
                 SpeechBubble(text: agent.lastPrompt.map { "Last: \($0)" } ?? "Napping", tint: Palette.idle, emphasized: false)
                     .frame(maxWidth: 280)
                     .fixedSize(horizontal: false, vertical: true)
-                    .position(x: slot.x, y: slot.feetY - (240 + 130) * s - 14)
+                    .position(x: slot.x, y: slot.feetY - (240 + headroom) * s - 14)
                     .allowsHitTesting(false)
             }
 
@@ -401,13 +408,15 @@ struct NameTag: View {
 struct EmptyStage: View {
     let size: CGSize
     let groove: Groove
+    let style: CutieStyle
 
     var body: some View {
         let w = min(150, size.height * 0.2)
         let s = w / 384
         let feetY = size.height * 0.8
         let pose = Choreographer.pose(status: .idle, seed: 3, beat: groove.beat, energy: groove.energy)
-        let look = CutieRenderer.Look(status: .idle, kick: 0, beat: groove.beat, time: groove.time, seed: 3, dim: 0.7)
+        let look = CutieRenderer.Look(status: .idle, kick: 0, beat: groove.beat, time: groove.time, seed: 3, dim: 0.7,
+                                      sombrero: style == .mexican)
         ZStack(alignment: .topLeading) {
             Canvas { ctx, sz in CutieRenderer.draw(ctx, size: sz, pose: pose, look: look) }
                 .frame(width: CutieRenderer.localWidth * s, height: CutieRenderer.localHeight * s)

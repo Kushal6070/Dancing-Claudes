@@ -4,9 +4,9 @@
 
 Put on some music and your Claude Code agents dance to it. Every agent you have running becomes a little pixel cutie, and every move lands on the beat. One look tells you what each agent is doing and which one needs you.
 
-![Pixel cuties dancing to music under neon waves, one cutie per Claude Code agent](docs/demo.gif)
+[![Watch the Dancing Claudes demo on YouTube](https://img.youtube.com/vi/jC9hAP6w2IE/maxresdefault.jpg)](https://www.youtube.com/watch?v=jC9hAP6w2IE)
 
-*7 agents on a 141 BPM song: 2 working up front, 5 napping in the back.*
+*▶ Click to watch the demo on YouTube.*
 
 ## What you get
 
